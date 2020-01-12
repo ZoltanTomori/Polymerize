@@ -1,5 +1,5 @@
 import microstructure as mStr
-from numpy import *
+from numpy import linspace, pi, sin, concatenate, zeros_like, zeros
 from copy import deepcopy
 
 #yfrom tpp import *
