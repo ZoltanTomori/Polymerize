@@ -38,8 +38,7 @@ y3=sin(x3)*0.5-0.5
 
 #[0:-1] znamena prvy riadok, posledny stlpec 
 #[1:] znamena druhy riadok, vsetky stlpce
-#pozn. lebo indexovanie je od nuly
-#concatenate spaja polia
+#pozn. lebo indexovanie je od nuly, concatenate spaja polia
 x=concatenate((x1[0:-1],x2, x3[1:]))
 y=concatenate((y1[0:-1],y2, y3[1:]))
 #vytvori pole s deviatkami o rovnakej dlzke ako ma x
