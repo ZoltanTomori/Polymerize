@@ -13,17 +13,15 @@ sphereSpeed = 20
 
 xyres = 0.25
 
-# make a slab - tu sa robia podstavce:
-# parametre slabStr(xyz_sizes - velkosti podstavca vo vsetkych osiach
-# , scanorder, stepsizes, speed) - zbytok je vysvetleny v dokumentacii
-viscoStr = mStr.slabStr([5, 5, 10], [0, 1, 2], [xyres, 0.5], speed)
-viscoStr.shift([-2.5, -2.5, 0])  # shift the structure
+slabXY = 5 
+slabZ = 10
+lineFromGround = 7
 
-# podstavec sa okopiruje, a okopirovany sa posunie v osi x
+viscoStr = mStr.slabStr([slabXY, slabXY, slabZ], [
+                        0, 1, 2], [xyres, 0.5], speed)
+viscoStr.shift([-slabXY/2, -slabXY/2, 0])
 slab2 = deepcopy(viscoStr)
 slab2.shift([(lineLength+2.0)*2, 0, 0])
-# druhy podstavec vzniknuty okopirovanim sa prida do struktury ku
-# prvemu - celu strukturu budeme skladat do premennej viscoStr
 viscoStr.addStr(slab2)
 
 # linspace(start, stop, num) - vrati num pocet rovnomerne rozdelenych
@@ -42,7 +40,7 @@ y3 = sin(x3)*0.5-0.5
 x = concatenate((x1[0:-1], x2, x3[1:]))
 y = concatenate((y1[0:-1], y2, y3[1:]))
 # vytvori pole s deviatkami o rovnakej dlzke ako ma x
-z = zeros_like(x)+9
+z = zeros_like(x)+lineFromGround
 
 # set the length:
 # ptp vracia (maximum-minimum) hodnotu, cize x bude v rozsahu <0,1>
@@ -77,14 +75,8 @@ line = mStr.MicroStr(sinLine)
 line.shift([2.0, 0, 0])
 viscoStr.addStr(line)
 
-# nakoniec sa vytvori a prida do struktury sfera, parametre: prve tri su
-# suradnice stredu, polomer, rychlost, xyres a dalsie dva parametre
-# neviem co su zac,nema to vysvetlene ani v dokumentacii, ale shell spacing
-# je vzdialenost medzi jednotlivymi vrstavami gule
-sph = mStr.sphereStr(lineLength+2.0, 0, 9, sphereR,
-                     sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+sph = mStr.sphereStr(lineLength+2.0, 0, lineFromGround,
+                     sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
 viscoStr.addStr(sph)
-
-# vykresli sa vysledna struktura
 viscoStr.plot(1, markerscalef=0.1)
 c = 0
