@@ -6,13 +6,14 @@ from copy import deepcopy
 slabSpeed = 50
 xyres = 0.25
 slabSz = [6, 5, 8] 
-slabExtSz = [8, 5, 1.3]
+slabExtSz = [8, 5, 1]
 slabSzDifX = slabExtSz[0] - slabSz[0]
 
 # line
 linespeed = 80
 lineLength = 10
 linePoints = 20
+lineDrop = 1
 lineElev = slabSz[2] + slabExtSz[2]/2
 
 # sphere
@@ -28,7 +29,7 @@ def sinusLine():
     xCos = linspace(0, 2 * pi, linePoints/2)
     yCos = cos(xCos) - 1
     for i in range(len(xCos)):       
-        z[i + lineLength] = lineElev + 2 * yCos[i]
+        z[i + lineLength] = lineElev + lineDrop * yCos[i] / 2
 
     sinLine = zeros((len(x), 5))
     sinLine[:, 0] = x
@@ -39,27 +40,27 @@ def sinusLine():
 
     return sinLine
 
-
+# vytvori stlpec a posunieho tak, aby (0,0) bolo v strede celnej steny
 slab1 = mStr.slabStr(slabSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
 slab1.shift([-slabSz[0], -slabSz[1]/2, 0])
 viscoStruct = slab1
 
+# na stlpec ulozi rozsirenie - manzetu
 slabExt = mStr.slabStr(slabExtSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
 slabExt.shift([-(slabSz[0] + slabSzDifX/2), -slabExtSz[1]/2, slabSz[2]])
 viscoStruct.addStr(slabExt)
 
+# skopiruje stlpec aj s rozsirenim do druhehe a posinie ho o 2 * lineLength
 slab2 = deepcopy(viscoStruct)
 slab2.shift([(lineLength)*2 + slabSz[0], 0, 0])
 viscoStruct.addStr(slab2)
 
+# vyutvori ciaru ktorej prva polovica bude usecka a druha sinusovka
 sinLine = sinusLine()
 line = mStr.MicroStr(sinLine)
 viscoStruct.addStr(line)
 
-# nakoniec sa vytvori a prida do struktury sfera, parametre: prve tri su
-# suradnice stredu, polomer, rychlost, xyres a dalsie dva parametre
-# neviem co su zac,nema to vysvetlene ani v dokumentacii, ale shell spacing
-# je vzdialenost medzi jednotlivymi vrstavami gule
+# v polovici ciary vytvori gulu
 sph = mStr.sphereStr(lineLength, 0, lineElev, sphereR,
                      sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
 viscoStruct.addStr(sph)
