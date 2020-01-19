@@ -59,8 +59,6 @@ viscoStr.addStr(line)
 sph = mStr.sphereStr(lineLength, 0, 9, sphereR,
                      sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
 viscoStr.addStr(sph)
-
-# vykresli sa vysledna struktura
 viscoStr.plot(1, markerscalef=0.1)
 c = 0
 
