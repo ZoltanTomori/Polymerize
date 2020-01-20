@@ -1,82 +1,76 @@
 import microstructure as mStr
-from numpy import linspace, pi, sin, concatenate, zeros_like, zeros
+from numpy import linspace, pi, sin, cos, concatenate, zeros_like, zeros
 from copy import deepcopy
 
-# yfrom tpp import *
-# definujeme parametre na zaciatok
-speed = 50
+# slab
+slabSpeed = 50
+xyres = 0.25
+slabSz = [5, 5, 8]
+slabExtSz = [7, 5, 1]
+slabSzDifX = slabExtSz[0] - slabSz[0]
+
+# line
 linespeed = 80
 lineLength = 10
+linePoints = 50
+lineDrop = 2
+lineElev = slabSz[2] + slabExtSz[2]/2
 
+# sphere
 sphereR = 1.0
 sphereSpeed = 20
 
-xyres = 0.25
+# _______________________________________________________________________
 
-slabXY = 5 
-slabZ = 10
-lineFromGround = 7
 
-viscoStr = mStr.slabStr([slabXY, slabXY, slabZ], [
-                        0, 1, 2], [xyres, 0.5], speed)
-viscoStr.shift([-slabXY/2, -slabXY/2, 0])
-slab2 = deepcopy(viscoStr)
-slab2.shift([(lineLength+2.0)*2, 0, 0])
-viscoStr.addStr(slab2)
+def sinusLine():
+    x1 = linspace(-pi/2, pi/2, linePoints/2)
+    x2 = linspace(pi/2, 3*pi/2, linePoints)
+    x3 = linspace(3*pi/2, 5*pi/2, linePoints/2)
+    y1 = sin(x1)*0.5+0.5
+    y2 = sin(x2)
+    y3 = sin(x3)*0.5-0.5
+    x = concatenate((x1[0:-1], x2, x3[1:]))
+    y = concatenate((y1[0:-1], y2, y3[1:]))
+    z = zeros_like(x) + lineElev
 
-# linspace(start, stop, num) - vrati num pocet rovnomerne rozdelenych
-# hodnot z intervalu <start, stop>
-x1 = linspace(-pi/2, pi/2, num=25)
-x2 = linspace(pi/2, 3*pi/2, num=50)
-x3 = linspace(3*pi/2, 5*pi/2, num=25)
+    x = (x-min(x))/x.ptp()
+    x *= 2 * lineLength
+    y *= lineDrop
 
-y1 = sin(x1)*0.5+0.5
-y2 = sin(x2)
-y3 = sin(x3)*0.5-0.5
+    sinLine = zeros((len(x), 5))
+    sinLine[:, 0] = x
+    sinLine[:, 1] = y
+    sinLine[:, 2] = z
+    sinLine[:, 3] = 1
+    sinLine[-1, 3:5] = [0, linespeed]
 
-# [0:-1] znamena prvy riadok, posledny stlpec
-# [1:] znamena druhy riadok, vsetky stlpcey
-# pozn. lebo indexovanie je od nuly, concatenate spaja polia
-x = concatenate((x1[0:-1], x2, x3[1:]))
-y = concatenate((y1[0:-1], y2, y3[1:]))
-# vytvori pole s deviatkami o rovnakej dlzke ako ma x
-z = zeros_like(x)+lineFromGround
+    return sinLine
 
-# set the length:
-# ptp vracia (maximum-minimum) hodnotu, cize x bude v rozsahu <0,1>
-x = (x-min(x))/x.ptp()
-# vynasobi vsetky cleny pola x dva krat hodnotou lineLength
-x *= 2 * lineLength
-# vynasobi vsetky cleny pola y 2.5 - zmeni amplitudu sinusovky:
-y *= 2.5
 
-# zeros vytvara maticu nul s prislusnymi rozmermi: riadkov bude rovnako
-# ako je dlzka polia x a stlpcov 5 - to je ta matica ktora sa musi dat ako
-# vstupny parameter ked vytvarame lubovolnu strukturu
-sinLine = zeros((len(x), 5))
-# prvy stlpec matice budu hodnoty x:
-# pozn. : znamena vsetky (v tomto pripade riadky)
-sinLine[:, 0] = x
-# druhy stlpec bude y
-sinLine[:, 1] = y
-# treti stlpec bude z (v tomto pripade vsade bude hodnota 9)
-sinLine[:, 2] = z
-# stvrty stlpec budu same jednotky (stplec prisluchajuci shutteru)
-sinLine[:, 3] = 1
-# nasledujuci prikaz znamena, ze do posledneho riadku sa do
-# stvrteho stlpca prida 0 (uzatvorenie shuttera) a do piateho stlpca
-# hodnota linespeed - rychlost polymerizacie (inak ostali v celom
-# 5tom stlpci nulky)
-sinLine[-1, 3:5] = [0, linespeed]
+# vytvori stlpec a posunieho tak, aby (0,0) bolo v strede celnej steny
+slab1 = mStr.slabStr(slabSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
+slab1.shift([-slabSz[0], -slabSz[1]/2, 0])
+viscoStruct = slab1
 
-# tu sa vytvori objekt mikrostruktury na zaklade
-# matice sinLine a prida sa do sktruktury ktora uz obsahuje podstavce
+# na stlpec ulozi rozsirenie - manzetu
+slabExt = mStr.slabStr(slabExtSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
+slabExt.shift([-(slabSz[0] + slabSzDifX/2), -slabExtSz[1]/2, slabSz[2]])
+viscoStruct.addStr(slabExt)
+
+# skopiruje stlpec aj s rozsirenim do druhehe a posinie ho o 2 * lineLength
+slab2 = deepcopy(viscoStruct)
+slab2.shift([(lineLength)*2 + slabSz[0], 0, 0])
+viscoStruct.addStr(slab2)
+
+# vyutvori ciaru ktorej prva polovica bude usecka a druha sinusovka
+sinLine = sinusLine()
 line = mStr.MicroStr(sinLine)
-line.shift([2.0, 0, 0])
-viscoStr.addStr(line)
+viscoStruct.addStr(line)
 
-sph = mStr.sphereStr(lineLength+2.0, 0, lineFromGround,
-                     sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
-viscoStr.addStr(sph)
-viscoStr.plot(1, markerscalef=0.1)
-c = 0
+# v polovici ciary vytvori gulu
+sph = mStr.sphereStr(lineLength, 0, lineElev, sphereR,
+                     sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+
+viscoStruct.addStr(sph)
+viscoStruct.plot(1, markerscalef=0.1)
