@@ -13,7 +13,7 @@ slabSzDifX = slabExtSz[0] - slabSz[0]
 linespeed = 80
 lineLength = 10
 linePoints = 50
-lineDrop = 2
+lineDrop = 1
 lineElev = slabSz[2] + slabExtSz[2]/2
 
 # sphere
@@ -47,6 +47,28 @@ def sinusLine():
 
     return sinLine
 
+def halfSinLine():
+    x1 = linspace(0, lineLength, linePoints/2)
+    y1 = zeros_like(x1)   
+    xSin = linspace(0, 2*pi, linePoints/2)
+    ySin= sin(xSin)
+    x2 = lineLength + lineLength * xSin/(2*pi)
+    y2 = ySin * lineDrop
+
+    x = concatenate((x1[0:-1], x2[1:]))
+    y = concatenate((y1[0:-1], y2[1:]))
+    z = zeros_like(x) + lineElev
+
+
+    sinLine = zeros((len(x), 5))
+    sinLine[:, 0] = x
+    sinLine[:, 1] = y
+    sinLine[:, 2] = z
+    sinLine[:, 3] = 1
+    sinLine[-1, 3:5] = [0, linespeed]
+
+    return sinLine
+
 
 # vytvori stlpec a posunieho tak, aby (0,0) bolo v strede celnej steny
 slab1 = mStr.slabStr(slabSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
@@ -64,7 +86,7 @@ slab2.shift([(lineLength)*2 + slabSz[0], 0, 0])
 viscoStruct.addStr(slab2)
 
 # vyutvori ciaru ktorej prva polovica bude usecka a druha sinusovka
-sinLine = sinusLine()
+sinLine = halfSinLine() #sinusLine()
 line = mStr.MicroStr(sinLine)
 viscoStruct.addStr(line)
 
