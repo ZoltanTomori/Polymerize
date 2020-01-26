@@ -8,23 +8,23 @@ xyres = 0.25
 slabSz = [1, 1, 3]
 
 # circle
-circSpeed = 80
-circR = 8
-circPoints = 50
-circElev = slabSz[2]
-numCircles = 3
+circSpeed = 80          # rychlost polymerizacie kruhu
+circR = 6               # polomer kruhu
+circPoints = 50         # pocet bodov kruznice
+numCircles = 2          # pocet kruznic tvoriacich polymerizovany kruh v oboch smeroch
+circDist = 0.1          # vzdialenost kruznic pri polymerizovani kruhu
 
 # sphere
 sphereR = 1.0
 sphereSpeed = 20
 
 # line
-lineLengthCoeff = 2  # kolko krat je rameno dlhsie ako polomer kruhu
-lineSpeed = 50
+lineLength = 18         # dlzka ramena luca (ma byt > circR)
+lineSpeed = 50          # rychlost polymerizacie luca
 
 # _______________________________________________________________________
 
-
+lineLengthCoeff = lineLength / circR
 def circle(radius, elev):
     phivec = linspace(0, 2*pi, circPoints)
     arr = zeros((len(phivec), 5))
@@ -55,7 +55,16 @@ for i in range(3):
     sph2 = mStr.sphereStr(lineLengthCoeff*slabPosX[i], lineLengthCoeff*slabPosY[i], slabSz[2]+sphereR, sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sph2)
 
-    # luc
+
+# telo kruhu
+for i in range(-numCircles, numCircles):
+    circElevation = slabSz[2] + sphereR + i*circDist
+    for j in range(-numCircles, numCircles):
+        circ = mStr.MicroStr(circle(circR + j*circDist, circElevation))
+        viscoStruct.addStr(circ)
+
+# luce az nakoniec lebo su tenke
+for i in range(3):
     lineArr = zeros((2, 5))
     lineArr[:, 0] = [slabPosX[i], lineLengthCoeff * slabPosX[i]]
     lineArr[:, 1] = [slabPosY[i], lineLengthCoeff * slabPosY[i]]
@@ -63,12 +72,5 @@ for i in range(3):
     lineArr[:, 3] = 1
     lineArr[-1, 3:5] = [0, lineSpeed]
     viscoStruct.addStr(mStr.MicroStr(lineArr))
-
-# telo kruhu
-for i in range(-numCircles, numCircles):
-    elevation = slabSz[2] + sphereR + i*0.1
-    for j in range(-numCircles, numCircles):
-        circ = mStr.MicroStr(circle(circR + j*0.1, elevation))
-        viscoStruct.addStr(circ)
 
 viscoStruct.plot(1, markerscalef=0.1)
