@@ -15,7 +15,8 @@ numCircles = 2          # pocet kruznic tvoriacich polymerizovany kruh v oboch s
 circDist = 0.1          # vzdialenost kruznic pri polymerizovani kruhu
 
 # sphere
-sphereR = 1.0
+sphereR = 1.0           # polomer gulicky na stlpikoch
+sphereRayR = 0.5        # polomer gulicky "zdureniny" z ktrej ide luc z kruhu
 sphereSpeed = 20
 
 # line
@@ -35,6 +36,7 @@ def circle(radius, elev):
     arr[-1, 3:5] = [0, circSpeed]
     return arr
 
+# rozdeli 0-360 stupnov na 3 casti (4 okrajove body)
 verts = linspace(0, 2*pi, 4)
 slabPosX = cos(verts) * circR
 slabPosY = sin(verts) * circR
@@ -48,14 +50,6 @@ for i in range(3):
     sph1 = mStr.sphereStr(slabPosX[i], slabPosY[i], slabSz[2]+sphereR, sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sph1)
 
-    # stlpik pod koncom luca ukonceny gulickou
-    slab2 = mStr.slabStr([slabSz[0], slabSz[1], slabSz[2] + sphereR/3],[0, 1, 2], [xyres, 0.2], slabSpeed) 
-    slab2.shift([lineLengthCoeff*slabPosX[i]-slabSz[0]/2, lineLengthCoeff*slabPosY[i]-slabSz[1]/2, 0])
-    viscoStruct.addStr(slab2)
-    sph2 = mStr.sphereStr(lineLengthCoeff*slabPosX[i], lineLengthCoeff*slabPosY[i], slabSz[2]+sphereR, sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
-    viscoStruct.addStr(sph2)
-
-
 # telo kruhu
 for i in range(-numCircles, numCircles):
     circElevation = slabSz[2] + sphereR + i*circDist
@@ -63,11 +57,28 @@ for i in range(-numCircles, numCircles):
         circ = mStr.MicroStr(circle(circR + j*circDist, circElevation))
         viscoStruct.addStr(circ)
 
+# rozdeli 45-405 stupnov na 3 casti (4 okrajove body)
+vertsRay = linspace(pi/3, 2*pi+pi/3, 4)
+slabRayPosX = cos(vertsRay) * circR
+slabRayPosY = sin(vertsRay) * circR
+
+ # stlpiky pod zaciatkom a koncom luca ukoncene gulickou
+for i in range(3):
+    sphRay1 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], slabSz[2]+sphereR, sphereRayR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+    viscoStruct.addStr(sphRay1)
+
+    slab2 = mStr.slabStr([slabSz[0], slabSz[1], slabSz[2] + sphereR/3],[0, 1, 2], [xyres, 0.2], slabSpeed) 
+    slab2.shift([lineLengthCoeff*slabRayPosX[i]-slabSz[0]/2, lineLengthCoeff*slabRayPosY[i]-slabSz[1]/2, 0])
+    viscoStruct.addStr(slab2)
+    sphRay2 = mStr.sphereStr(lineLengthCoeff*slabRayPosX[i], lineLengthCoeff*slabRayPosY[i], slabSz[2]+sphereR, sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+    viscoStruct.addStr(sphRay2)
+   
 # luce az nakoniec lebo su tenke
 for i in range(3):
+
     lineArr = zeros((2, 5))
-    lineArr[:, 0] = [slabPosX[i], lineLengthCoeff * slabPosX[i]]
-    lineArr[:, 1] = [slabPosY[i], lineLengthCoeff * slabPosY[i]]
+    lineArr[:, 0] = [slabRayPosX[i], lineLengthCoeff * slabRayPosX[i]]
+    lineArr[:, 1] = [slabRayPosY[i], lineLengthCoeff * slabRayPosY[i]]
     lineArr[:, 2] = slabSz[2] + sphereR
     lineArr[:, 3] = 1
     lineArr[-1, 3:5] = [0, lineSpeed]
