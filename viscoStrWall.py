@@ -6,7 +6,7 @@ from copy import deepcopy
 slabSpeed = 50
 xyres = 0.25
 slabSz = [5, 5, 8]
-slabExtSz = [7, 5, 1]
+slabExtSz = [8, 5, 1]
 slabSzDifX = slabExtSz[0] - slabSz[0]
 
 # line
@@ -20,7 +20,7 @@ lineElev = slabSz[2] + slabExtSz[2]/2
 circSpeed = 80          # rychlost polymerizacie kruhu
 circR = 30              # polomer kruhu
 circPoints = 50         # pocet bodov kruznice
-numCircles = [4, 50]    # pocet kruznic tvoriacich polymerizovany kruh v smeroch [X, Z]
+numCircles = [4, 70]    # pocet kruznic tvoriacich polymerizovany kruh v smeroch [X, Z]
 circDist = 0.2          # vzdialenost kruznic pri polymerizovani kruhu
 
 # sphere
@@ -105,21 +105,19 @@ origin = mStr.MicroStr(circle(0.1, 0))
 origin.shift([lineLength, 0, 0])
 viscoStruct.addStr(origin)
 
-
-# vytvori stlpec a posunieho tak, aby (0,0) bolo v strede celnej steny
+# vytvori stlpec + hlavu a posunieho tak, aby (0,0) bolo v strede celnej steny
 slab1 = mStr.slabStr(slabSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
+slab1Ext = mStr.slabStr(slabExtSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
+slab1Ext.shift([-slabSzDifX/2, 0, slabSz[2]])
+slab1.addStr(slab1Ext)
 slab1.shift([-slabSz[0], -slabSz[1]/2, 0])
 viscoStruct.addStr(slab1)
 
-# na stlpec ulozi rozsirenie - manzetu
-slabExt = mStr.slabStr(slabExtSz, [0, 1, 2], [xyres, 0.5], slabSpeed)
-slabExt.shift([-(slabSz[0] + slabSzDifX/2), -slabExtSz[1]/2, slabSz[2]])
-viscoStruct.addStr(slabExt)
-
 # skopiruje stlpec aj s rozsirenim do druheho a posinie ho o 2 * lineLength
-slab2 = deepcopy(viscoStruct)
+slab2 = deepcopy(slab1)
 slab2.shift([(lineLength)*2 + slabSz[0], 0, 0])
 viscoStruct.addStr(slab2)
+
 
 # vyutvori ciaru ktorej prva polovica bude usecka a druha sinusovka
 sinLine = halfSinLine() #sinusLine()
