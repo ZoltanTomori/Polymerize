@@ -13,7 +13,7 @@ slabSz = [1, 1, 8]      # rozmer stlpika [x,y,z]
 
 # circle
 circSpeed = 80          # rychlost polymerizacie kruhu
-circR = 6               # polomer kruhu
+circR = 10               # polomer kruhu
 circPoints = 50         # pocet bodov kruznice
 numCircles = 2          # pocet kruznic tvoriacich polymerizovany kruh v oboch smeroch
 circDist = 0.1          # vzdialenost kruznic pri polymerizovani kruhu
@@ -22,6 +22,8 @@ circDist = 0.1          # vzdialenost kruznic pri polymerizovani kruhu
 sphereR = 1.0           # polomer gulicky na stlpikoch
 sphereRayR = 0.5        # polomer gulicky "zdureniny" z ktrej ide luc z kruhu
 sphereSpeed = 20        # rychlost polymerizovania gulicky
+armSphereR = 1          # polomer efektorovej gulicky
+armSphereHeight = 2     # vyska gulicky nad podlahou
 
 # arm (usecky alebo aj krivky ako napr. sinus)
 armEndDist = 18         # vzdialenost konca ramena od stredu (dlzka ramena bude armDist-circR)
@@ -33,6 +35,15 @@ armAmplit = 1.5         # amplituda Y (v pripade krivky)
 # _______________________________________________________________________
 
 lineLengthCoeff = armEndDist / circR
+
+def DoVerticalLine(P1, P2):
+    lineArr = zeros((2, 5))
+    lineArr[:, 0] = [P1[0], P2[0]]
+    lineArr[:, 1] = [P1[1], P2[1]]
+    lineArr[:, 2] = [P1[2], P2[2]]
+    lineArr[:, 3] = 1
+    lineArr[-1, 3:5] = [0, armSpeed]
+    return lineArr
 
 def DoLine(P1, P2):
     lineArr = zeros((2, 5))
@@ -107,27 +118,19 @@ slabRayPosY = sin(vertsRay) * circR
 for i in range(numRays):
     sphRay1 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], slabSz[2]+sphereR, sphereRayR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sphRay1)
-
-    #slab2 = mStr.slabStr([slabSz[0], slabSz[1], slabSz[2] + sphereR/3],[0, 1, 2], [xyres, 0.2], slabSpeed) 
-    #slab2.shift([lineLengthCoeff*slabRayPosX[i]-slabSz[0]/2, lineLengthCoeff*slabRayPosY[i]-slabSz[1]/2, 0])
-    #viscoStruct.addStr(slab2)
-    #sphRay2 = mStr.sphereStr(lineLengthCoeff*slabRayPosX[i], lineLengthCoeff*slabRayPosY[i], slabSz[2]+sphereR, sphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
-    #viscoStruct.addStr(sphRay2)
    
 # luce az nakoniec lebo su tenke
 for i in range(numRays):
     P1 = [slabRayPosX[i], slabRayPosY[i], slabSz[2] + sphereR]
-    #P2 = [slabRayPosX[i] * lineLengthCoeff, slabRayPosY[i] * lineLengthCoeff, slabSz[2] + sphereR]
-    P2 = [slabRayPosX[i], slabRayPosY[i], sphereR]
+    P2 = [slabRayPosX[i], slabRayPosY[i], 0]
     #lineArr = SinusLine(P1, P2)
-    lineArr = DoLine(P1, P2)
+    lineArr = DoVerticalLine(P1, P2)
     viscoStruct.addStr(mStr.MicroStr(lineArr))
 
 # gulicka do stredu luca
-
 armCoef = armBallDist / circR
 for i in range(numRays):
-    sphRay2 = mStr.sphereStr(armCoef*slabRayPosX[i], armCoef*slabRayPosY[i], slabSz[2]+sphereR, sphereRayR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+    sphRay2 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], armSphereHeight+sphereR, armSphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sphRay2)
     
 viscoStruct.plot(1, markerscalef=0.1)
