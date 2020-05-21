@@ -32,6 +32,12 @@ armSpeed = 50           # rychlost polymerizacie luca
 armPoints = 50          # pocet bodov - iba v pripade kriviek
 armAmplit = 1.5         # amplituda Y (v pripade krivky)
 
+# wall 
+wallCircSpeed = 80          # rychlost polymerizacie kruhu
+wallCircR = 30              # polomer kruhu
+wallCircPoints = 50         # pocet bodov kruznice
+wallNumCircles = [4, 70]    # pocet kruznic tvoriacich polymerizovany kruh v smeroch [X, Z]
+wallCircDist = 0.2          # vzdialenost kruznic pri polymerizovani kruhu
 # _______________________________________________________________________
 
 lineLengthCoeff = armEndDist / circR
@@ -133,4 +139,14 @@ for i in range(numRays):
     sphRay2 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], armSphereHeight+sphereR, armSphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sphRay2)
     
+# telo kruhovej ohrady
+wall = mStr.MicroStr(zeros((0,5)))
+for i in range(wallNumCircles[1]):
+    circElevation = i*wallCircDist
+    for j in range(wallNumCircles[0]):
+        circ = mStr.MicroStr(circle(wallCircR + j*wallCircDist, circElevation))
+        wall.addStr(circ)
+
+viscoStruct.addStr(wall)
+
 viscoStruct.plot(1, markerscalef=0.1)
