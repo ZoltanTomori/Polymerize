@@ -26,11 +26,9 @@ armSphereR = 1          # polomer efektorovej gulicky
 armSphereHeight = 2     # vyska gulicky nad podlahou
 
 # arm (usecky alebo aj krivky ako napr. sinus)
-armEndDist = 18         # vzdialenost konca ramena od stredu (dlzka ramena bude armDist-circR)
-armBallDist = 12        # vzdialenost gulicky na ramene od stredu (pre sinus musi byt v strede krivky!)
 armSpeed = 50           # rychlost polymerizacie luca
 armPoints = 50          # pocet bodov - iba v pripade kriviek
-armAmplit = 1.5         # amplituda Y (v pripade krivky)
+armAmplit = 0.0         # amplituda Y (v pripade krivky), 0 je rovna ciara
 
 # wall 
 wallCircSpeed = 80          # rychlost polymerizacie kruhu
@@ -40,22 +38,11 @@ wallNumCircles = [4, 70]    # pocet kruznic tvoriacich polymerizovany kruh v sme
 wallCircDist = 0.2          # vzdialenost kruznic pri polymerizovani kruhu
 # _______________________________________________________________________
 
-lineLengthCoeff = armEndDist / circR
-
-def DoVerticalLine(P1, P2):
-    lineArr = zeros((2, 5))
-    lineArr[:, 0] = [P1[0], P2[0]]
-    lineArr[:, 1] = [P1[1], P2[1]]
-    lineArr[:, 2] = [P1[2], P2[2]]
-    lineArr[:, 3] = 1
-    lineArr[-1, 3:5] = [0, armSpeed]
-    return lineArr
-
 def DoLine(P1, P2):
     lineArr = zeros((2, 5))
     lineArr[:, 0] = [P1[0], P2[0]]
     lineArr[:, 1] = [P1[1], P2[1]]
-    lineArr[:, 2] = slabSz[2] + sphereR
+    lineArr[:, 2] = [P1[2], P2[2]]
     lineArr[:, 3] = 1
     lineArr[-1, 3:5] = [0, armSpeed]
     return lineArr
@@ -70,7 +57,7 @@ def circle(radius, elev):
     arr[-1, 3:5] = [0, circSpeed]
     return arr
 
-def SinusLine(fromPt, toPt):
+def SinusLine(P1, P2):
     x1 = linspace(-pi/2, pi/2, armPoints/2)
     x2 = linspace(pi/2, 3*pi/2, armPoints)
     x3 = linspace(3*pi/2, 5*pi/2, armPoints/2)
@@ -79,20 +66,20 @@ def SinusLine(fromPt, toPt):
     y3 = sin(x3)*0.5-0.5
     x = concatenate((x1[0:-1], x2, x3[1:]))
     y = concatenate((y1[0:-1], y2, y3[1:]))
-    z = P1[2]
 
     x = (x-min(x))/x.ptp()
-    x = x * (toPt[0] - fromPt[0]) + fromPt[0]
+    x = x * (P2[2] - P1[2]) + P1[2]
     y = y * armAmplit
 
     sinLine = zeros((len(x), 5))
-    sinLine[:, 0] = x
+    sinLine[:, 0] = P1[0]
     sinLine[:, 1] = y
-    sinLine[:, 2] = z
+    sinLine[:, 2] = x 
     sinLine[:, 3] = 1
     sinLine[-1, 3:5] = [0, armSpeed]
 
     return sinLine
+
 
 # rozdeli 0-360 stupnov na 3 casti (4 okrajove body)
 verts = linspace(pi/4, 9*pi/4, numSlabs+1)
@@ -135,20 +122,21 @@ for i in range(numRays):
     sphRay1 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], slabSz[2]+sphereR, sphereRayR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sphRay1)
    
-# luce az nakoniec lebo su tenke
+# luce az nakoniec lebo su tenke, luc ma sinusovy priebeh
 for i in range(numRays):
     P1 = [slabRayPosX[i], slabRayPosY[i], slabSz[2] + sphereR]
     P2 = [slabRayPosX[i], slabRayPosY[i], 0]
-    #lineArr = SinusLine(P1, P2)
-    lineArr = DoVerticalLine(P1, P2)
+    lineArr = SinusLine(P1, P2)
+    #lineArr = DoLine(P1, P2)
     viscoStruct.addStr(mStr.MicroStr(lineArr))
 
 # gulicka do stredu luca
-armCoef = armBallDist / circR
 for i in range(numRays):
-    sphRay2 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], armSphereHeight+sphereR, armSphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+    #sphRay2 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], armSphereHeight+sphereR, armSphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
+    sphRay2 = mStr.sphereStr(slabRayPosX[i], slabRayPosY[i], (slabSz[2] + sphereR)/2, armSphereR, sphereSpeed, xyres, 1.0, 1, shellspacing=0.5)
     viscoStruct.addStr(sphRay2)
-    
+
+""" 
 # telo kruhovej ohrady
 wall = mStr.MicroStr(zeros((0,5)))
 for i in range(wallNumCircles[1]):
@@ -158,5 +146,5 @@ for i in range(wallNumCircles[1]):
         wall.addStr(circ)
 
 viscoStruct.addStr(wall)
-
+"""
 viscoStruct.plot(1, markerscalef=0.1)
