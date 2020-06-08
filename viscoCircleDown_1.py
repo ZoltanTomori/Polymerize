@@ -28,7 +28,7 @@ armSphereHeight = 2     # vyska gulicky nad podlahou
 # arm (usecky alebo aj krivky ako napr. sinus)
 armSpeed = 50           # rychlost polymerizacie luca
 armPoints = 50          # pocet bodov - iba v pripade kriviek
-armAmplit = 0.0         # amplituda Y (v pripade krivky), 0 je rovna ciara
+armAmplit = 1.0         # amplituda Y (v pripade krivky), 0 je rovna ciara
 
 # wall 
 wallCircSpeed = 80          # rychlost polymerizacie kruhu
@@ -72,8 +72,8 @@ def SinusLine(P1, P2):
     y = y * armAmplit
 
     sinLine = zeros((len(x), 5))
-    sinLine[:, 0] = P1[0]
-    sinLine[:, 1] = y
+    sinLine[:, 0] = P1[0]-y
+    sinLine[:, 1] = P1[1]
     sinLine[:, 2] = x 
     sinLine[:, 3] = 1
     sinLine[-1, 3:5] = [0, armSpeed]
